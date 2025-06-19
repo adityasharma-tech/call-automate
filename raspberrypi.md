@@ -29,8 +29,8 @@ pactl list short sources
 pactl load-module module-null-sink sink_name=VirtualMic sink_properties=device.description=VirtualMic
 ```
 
-> Set default mic source
+> Set default output source
 ```bash
-pactl set-default-source VirtualMic.monitor
+pactl set-default-sink VirtualMic
 ```
 
