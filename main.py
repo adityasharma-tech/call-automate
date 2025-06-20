@@ -1,28 +1,56 @@
-import bluetooth
+import os
+import glob
+import time
+import random
+import subprocess
+from bluetooth import *
 
-server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-port = 5
+subprocess.run(['bluetoothctl'], input=b'discoverable on\nquit\n', check=True)
 
 
-try:
-    server_sock.bind(("", port))
-    server_sock.listen(1)
+server_sock = BluetoothSocket(RFCOMM)
+server_sock.bind(("",PORT_ANY))
+server_sock.listen(1)
 
-    print(f"[*] Listening for RFCOMM connection on port {port}...")
+port = server_sock.getsockname()[1]
 
-    client_sock, client_info = server_sock.accept()
-    print(f"[+] Connection accepted from {client_info}")
+uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 
-    while True:
-        data = client_sock.recv(1024)
-        if not data:
+advertise_service( server_sock, "TestServer",
+                   service_id = uuid,
+                   service_classes = [ uuid, SERIAL_PORT_CLASS ],
+                   profiles = [ SERIAL_PORT_PROFILE ], 
+#                   protocols = [ OBEX_UUID ] 
+                    )
+
+print ("Waiting for connection on RFCOMM channel %d" % port)
+client_sock, client_info = server_sock.accept()
+print ("Accepted connection from ", client_info)
+
+while True:          
+    try:
+        req = client_sock.recv(1024)
+        if len(req) == 0:
             break
-        print(f"[AT COMMAND] {data.decode('utf-8', errors='ignore').strip()}")
+        print(req)
 
-except Exception as e:
-    print(f"[!] Error: {e}")
+        data = None
+       	data = "{\"event\":\"call.accept\",\"payload\":{}}"
+       
+        if data:
+            print("sending [%s]" % data)
+            client_sock.send(data)
 
-finally:
-    client_sock.close()
-    server_sock.close()
-    print("[*] Sockets closed.")
+    except IOError as e:
+        print("IOError", e)
+        break;
+
+    except KeyboardInterrupt:
+
+        print ("disconnected")
+
+        client_sock.close()
+        server_sock.close()
+        print( "all done")
+
+        break
