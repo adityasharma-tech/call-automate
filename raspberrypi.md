@@ -8,6 +8,11 @@ connect <device_id>
 trust <device_id>  # unless it will ask everytime from you to authorize it while your phone try to connect to it
 ```
 
+> This service must running unless it will throw an error: `File not found`
+```bash
+sudo bluetoothd --nodetach --debug --compat&
+```
+
 > Control volume though shell
 ```bash
 # amixer is preinstalled
