@@ -1,7 +1,5 @@
-import os
-import time
-import subprocess
+from services.BluetoothService import BluetoothService
 
-# to make it advertisable
-subprocess.run(['bluetoothctl'], input=b'discoverable on\nquit\n', check=True)
-
+bltService = BluetoothService()
+bltService.initialize()
+bltService.run()
