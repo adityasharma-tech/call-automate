@@ -10,7 +10,7 @@ trust <device_id>  # unless it will ask everytime from you to authorize it while
 
 > This service must running unless it will throw an error: `File not found`
 ```bash
-sudo bluetoothd --nodetach --debug --compat&
+sudo bluetoothd --nodetach --debug --compat
 ```
 
 > Control volume though shell
