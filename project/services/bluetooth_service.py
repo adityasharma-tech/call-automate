@@ -28,7 +28,27 @@ class BluetoothService:
     def hangup_call(self, path):
         call = dbus.Interface(self.bus.get_object('org.ofono', path), 'org.ofono.VoiceCall')
         call.Hangup()
-    
+
+    def hangup_active_call(self):
+        mgr = dbus.Interface(self.bus.get_object('org.ofono', self.target_modem_path), 'org.ofono.VoiceCallManager')
+        calls = mgr.GetCalls()
+        for path, props in calls:
+
+            if props['State'] != "active":
+                continue
+
+            call = dbus.Interface(self.bus.get_object('org.ofono', path), 'org.ofono.VoiceCall')
+
+            call.Hangup()
+   
+    def set_speaker_volume(self, volume: int):
+
+        if volume > 100 or volume < 10:
+            raise Exception("[error] volume can only be set within 10..100")
+
+        cv = dbus.Interface(self.bus.get_object('org.ofono', self.target_modem_path), 'org.ofono.CallVolume')
+        cv.SetProperty("SpeakerVolume", dbus.Byte(volume))
+
     def dial_number(self, number: str)->str:
         hide_callerid = "default" # 'default' 'enabled' 'disabled'
 
