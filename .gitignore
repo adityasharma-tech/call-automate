@@ -1,3 +1,7 @@
+# custom ignores
+contact_list.csv
+phonebook.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
