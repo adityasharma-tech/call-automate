@@ -1,4 +1,4 @@
-from services.bluetooth_service import BluetoothService
+from services.bluetooth import BluetoothService
 
 blt_service = BluetoothService("EC:30:B3:2F:0E:FD")
 blt_service.listen_call_events()
