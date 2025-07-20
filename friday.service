@@ -1,0 +1,16 @@
+[Unit]
+Description=Friday automation ai
+# After=bluetooth.service ofono.service
+# Requires=bluetooth.service ofono.service
+
+[Service]
+Type=simple
+ExecStart=/home/friday/call-automate/bin/exec.sh
+Restart=always
+WorkingDirectory=/home/friday/call-automate
+StandardOutput=journal
+StandardError=journal
+Environment="PULSE_SINK=1"
+
+[Install]
+WantedBy=default.target
