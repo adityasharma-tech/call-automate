@@ -1,6 +1,14 @@
 import dbus
 import time
 
+def error_handler(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(f"[error] Error occurred: {e}")
+    return wrapper
+
 class BluetoothService:
     def __init__(self, address: str):
         self.bus = dbus.SystemBus()
@@ -21,14 +29,17 @@ class BluetoothService:
         if not self.target_modem_path:
             raise Exception("[error] No target modem found")
     
+    @error_handler
     def answer_call(self, path):
         call = dbus.Interface(self.bus.get_object('org.ofono', path), 'org.ofono.VoiceCall')
         call.Answer()
 
+    @error_handler
     def hangup_call(self, path):
         call = dbus.Interface(self.bus.get_object('org.ofono', path), 'org.ofono.VoiceCall')
         call.Hangup()
 
+    @error_handler
     def hangup_active_call(self):
         mgr = dbus.Interface(self.bus.get_object('org.ofono', self.target_modem_path), 'org.ofono.VoiceCallManager')
         calls = mgr.GetCalls()
@@ -41,6 +52,7 @@ class BluetoothService:
 
             call.Hangup()
    
+    @error_handler
     def set_speaker_volume(self, volume: int):
 
         if volume > 100 or volume < 10:
@@ -49,6 +61,7 @@ class BluetoothService:
         cv = dbus.Interface(self.bus.get_object('org.ofono', self.target_modem_path), 'org.ofono.CallVolume')
         cv.SetProperty("SpeakerVolume", dbus.Byte(volume))
 
+    @error_handler
     def dial_number(self, number: str)->str:
         hide_callerid = "default" # 'default' 'enabled' 'disabled'
 
@@ -57,8 +70,8 @@ class BluetoothService:
 
         return path
 
-
-    def listen_call_events(self):
+    @error_handler
+    def listen_call_events(self, _callback):
         print("[info] listening call events for modem ( %s )" % (self.target_modem_path))
         mgr = dbus.Interface(self.bus.get_object('org.ofono', self.target_modem_path), 'org.ofono.VoiceCallManager')
 
@@ -68,16 +81,9 @@ class BluetoothService:
 
                 for path, props in calls:
                     for key in props.keys():
-                        print("%s : %s" % (key, props[key]))
+                        print("[info] %s : %s" % (key, props[key]))
                 
-                    if props['State'] == "incoming":
-                        self.answer_call(path)
-
-                    if props['State'] == "active":
-                        self.hangup_call(path)
-
-                if len(calls) > 0:
-                    break
+                    _callback(path, props)
             
             except KeyboardInterrupt:
                 print("[info] stopping listener for modem ( %s )" % (self.target_modem_path))
