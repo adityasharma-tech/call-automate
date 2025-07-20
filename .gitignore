@@ -1,6 +1,7 @@
 # custom ignores
 contacts.csv
 phonebook.csv
+*.swp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
