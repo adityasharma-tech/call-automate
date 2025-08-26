@@ -5,9 +5,9 @@ Description=Friday automation ai
 
 [Service]
 Type=simple
-ExecStart=/home/friday/call-automate/bin/exec.sh
+ExecStart=/home/rpi/call-automate/bin/exec.sh
 Restart=always
-WorkingDirectory=/home/friday/call-automate
+WorkingDirectory=/home/rpi/call-automate
 StandardOutput=journal
 StandardError=journal
 Environment="PULSE_SINK=1"
