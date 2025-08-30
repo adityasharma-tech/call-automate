@@ -1,5 +1,6 @@
 import dbus
 import time
+import asyncio
 
 def error_handler(func):
     def wrapper(*args, **kwargs):
@@ -71,7 +72,7 @@ class BluetoothService:
         return path
 
     @error_handler
-    def listen_call_events(self, _callback):
+    async def listen_call_events(self, _callback):
         print("[info] listening call events for modem ( %s )" % (self.target_modem_path))
         mgr = dbus.Interface(self.bus.get_object('org.ofono', self.target_modem_path), 'org.ofono.VoiceCallManager')
 
@@ -83,7 +84,7 @@ class BluetoothService:
                     for key in props.keys():
                         print("[info] %s : %s" % (key, props[key]))
                 
-                    _callback(path, props)
+                    await _callback(path, props)
             
             except KeyboardInterrupt:
                 print("[info] stopping listener for modem ( %s )" % (self.target_modem_path))

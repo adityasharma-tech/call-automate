@@ -70,10 +70,10 @@ class PhonebookService:
         try:
             return self.n2p[name]
         except KeyError:
-            return None
+            return "Unknown"
 
     def find_by_id(self, id: str):
         try:
             return self.p2n[id]
         except KeyError:
-            return None
+            return "Unknown"

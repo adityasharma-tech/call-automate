@@ -1,32 +1,30 @@
 import time
+import asyncio
 import subprocess
 from services.bluetooth import BluetoothService
 from services.phonebook import PhonebookService
 from services.stt import STT
 from services.audio import AudioService
+from services.livegemini import audio_loop
 
 audio_service = AudioService()
+phonebook = PhonebookService("../contacts.csv")
 bluetooth_service = BluetoothService("EC:30:B3:2F:0E:FD")
 
-def listen_callback(callpath, props): 
+async def listen_callback(callpath, props): 
     if props['State'] == "incoming":
         time.sleep(2)
-        print(f"[info] answering the call")
-        bluetooth_service.answer_call(callpath)
-        audio_service.play("leave_a_message")
+        try:
+            print(f"[info] answering the call")
+            bluetooth_service.answer_call(callpath)
+            await audio_loop(getattr(props, "LineIdentification", "Unknown"), "Unknown", bluetooth_service, audio_service, callpath)
 
-        bluetooth_service.hangup_call(callpath)
+        except Exception as e:
+            print("Exception occured: ", e)
+            audio_service.play("leave_a_message")
+            bluetooth_service.hangup_call(callpath)
 
-bluetooth_service.listen_call_events(listen_callback)
-
-
-
-
-
-
-
-
-
+asyncio.run(bluetooth_service.listen_call_events(listen_callback))
 
 # blt_service.listen_call_events()
 # blt_service.dial_number('+91842233')
@@ -40,3 +38,12 @@ bluetooth_service.listen_call_events(listen_callback)
 
 #stt = STT()
 #stt.listen()                       
+
+
+# [info] Name : 
+# [info] Multiparty : 0
+# [info] RemoteHeld : 0
+# [info] RemoteMultiparty : 0
+# [info] Emergency : 0
+# [info] State : incoming
+# [info] LineIdentification : +919718871016
