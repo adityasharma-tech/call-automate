@@ -8,7 +8,6 @@ from services.audio import AudioService
 from services.livegemini import audio_loop
 
 audio_service = AudioService()
-phonebook = PhonebookService("../contacts.csv")
 bluetooth_service = BluetoothService("EC:30:B3:2F:0E:FD")
 
 async def listen_callback(callpath, props): 
@@ -46,4 +45,4 @@ asyncio.run(bluetooth_service.listen_call_events(listen_callback))
 # [info] RemoteMultiparty : 0
 # [info] Emergency : 0
 # [info] State : incoming
-# [info] LineIdentification : +919718871016
+# [info] LineIdentification : +91xxxxxxxx

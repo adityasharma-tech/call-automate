@@ -196,7 +196,7 @@ async def audio_loop(identification: str, name: str, bluetooth_service, audio_se
                                 try:
                                     audio_service.play("goodbye")
                                     bluetooth_service.hangup_call(callpath)
-
+                                    return
                                     # gpt now I want to exit the listen_for_audio(), process_and_send_audio(), receive_and_play() and also the gemini session how can I 
                                 except Exception as e:
                                     print("[error]: Error occured during hangup_call {e}")
