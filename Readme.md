@@ -38,4 +38,6 @@ pactl load-module module-null-sink sink_name=VirtualMic sink_properties=device.d
 ```bash
 pactl set-default-sink VirtualMic
 ```
-
+> Important Envs
+- `GOOGLE_GEMINI_API=`
+- `DBUS_SYSTEM_BUS_ADDRESS=unix:path=/var/run/dbus/system_bus_socket`

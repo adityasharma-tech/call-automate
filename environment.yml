@@ -1,0 +1,9 @@
+name: call_handler_env
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - dbus
+  - pyaudio
+  - dbus-python
+prefix: /home/rpi/miniconda3/envs/call_handler_env
