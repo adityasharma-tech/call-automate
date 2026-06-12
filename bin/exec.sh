@@ -12,7 +12,7 @@ echo "Waiting for Bluetooth device $TARGET_BLUETOOTH_MAC to connect!"
 
 while true; do
 	if is_connected; then
-		echo "[info] device $TARGET_BLUETOOTH_MAC is now connected."
+		# echo "[info] device $TARGET_BLUETOOTH_MAC is now connected."
 		# pactl set-default-source VirtualMic.monitor
 		break
 	else

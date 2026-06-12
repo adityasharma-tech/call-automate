@@ -19,6 +19,9 @@ class BluetoothService:
         self.target_modem_path = None
 
         for path, properties in modems:
+            print("PATH:", path)
+            print("PROPERTIES:", properties)
+            print("KEYS:", list(properties.keys()))
             if properties[dbus.String('Serial')] == dbus.String(address):
 
                 if "org.ofono.VoiceCallManager" not in properties["Interfaces"]:
