@@ -14,28 +14,45 @@ transformer_service = TransformerService()
 bluetooth_service = BluetoothService(BL_MAC)
 commandline_service = CommandLineService(BL_MAC)
 
+transformer_task=None
+
 async def listen_callback(callpath, props): 
+    global transformer_task
     if props['State'] == "incoming":
-        time.sleep(5)
+        await asyncio.sleep(1)
         try:
             print(f"[info] answering the call")
             bluetooth_service.answer_call(callpath)
+
+            await asyncio.sleep(1)
             
             commandline_service.remove_loopbacks()
-            commandline_service.set_default()
+            await asyncio.sleep(1)
 
-            # await transformer_service.start()
-            time.sleep(2)
-            audio_service.play("leave_a_message")
-            time.sleep(5)
-            blt_service.hangup_active_call(callpath)
+            audio_service.play("greets")
+            
+            await transformer_service.start()
+
+            # audio_service.play("leave_a_message")
+            # await asyncio.sleep(5)
+            # bluetooth_service.hangup_active_call()
             
 
         except Exception as e:
             print("Exception occured: ", e)
             audio_service.play("leave_a_message")
-            time.sleep(5)
+            await asyncio.sleep(5)
             bluetooth_service.hangup_call(callpath)
+    elif props['State'] == 'active':
+        print('Ongoing call')
+    else:
+        if transformer_task is not None:
+            transformer_task.cancel()
+            try:
+                await transformer_task
+            except asyncio.CancelledError:
+                pass
+            transformer_task = None
 
 asyncio.run(bluetooth_service.listen_call_events(listen_callback))
 

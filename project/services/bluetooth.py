@@ -84,8 +84,8 @@ class BluetoothService:
                 calls = mgr.GetCalls()
 
                 for path, props in calls:
-                    for key in props.keys():
-                        print("[info] %s : %s" % (key, props[key]))
+                    # for key in props.keys():
+                    #     print("[info] %s : %s" % (key, props[key]))
                 
                     await _callback(path, props)
             

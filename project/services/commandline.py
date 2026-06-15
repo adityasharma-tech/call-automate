@@ -55,4 +55,4 @@ class CommandLineService:
 
 if __name__ == "__main__":
     commandline_service = CommandLineService("EC:30:B3:2F:0E:FD")
-    commandline_service.set_default()
+    commandline_service.remove_loopbacks()

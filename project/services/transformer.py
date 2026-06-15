@@ -1,27 +1,27 @@
 import asyncio
 import os
-import queue
-
-import sounddevice as sd
+import pyaudio
 from google import genai
 from google.genai import types
+
 
 class TransformerService:
     def __init__(self):
         self.INPUT_RATE = 16000
         self.OUTPUT_RATE = 24000
+        self.CHUNK = 1024
         self.audio_queue = asyncio.Queue()
+        self.pa = pyaudio.PyAudio()
+        self.loop = None
 
-
-    def mic_callback(self, indata, frames, time_info, status):
-        if status:
-            print(status)
-
+    def mic_callback(self, in_data, frame_count, time_info, status):
         try:
-            self.audio_queue.put_nowait(bytes(indata))
+            self.loop.call_soon_threadsafe(
+                self.audio_queue.put_nowait, in_data
+            )
         except Exception:
             pass
-
+        return (None, pyaudio.paContinue)
 
     async def send_audio(self, session):
         while True:
@@ -34,47 +34,51 @@ class TransformerService:
                 )
             )
 
-
     async def receive_audio(self, session):
-        speaker = sd.RawOutputStream(
-            samplerate=self.OUTPUT_RATE,
+        speaker = self.pa.open(
+            format=pyaudio.paInt16,
             channels=1,
-            dtype="int16",
+            rate=self.OUTPUT_RATE,
+            output=True,
         )
 
-        speaker.start()
+        try:
+            while True:
+                async for response in session.receive():
 
-        while True:
-            async for response in session.receive():
+                    server_content = response.server_content
 
-                server_content = response.server_content
+                    if not server_content:
+                        continue
 
-                if not server_content:
-                    continue
+                    if server_content.input_transcription:
+                        text = server_content.input_transcription.text
+                        if text:
+                            print(f"\n[transformer]: YOU: {text}")
 
-                if server_content.input_transcription:
-                    text = server_content.input_transcription.text
-                    if text:
-                        print(f"\n[transformer]: YOU: {text}")
+                    if server_content.output_transcription:
+                        text = server_content.output_transcription.text
+                        if text:
+                            print(f"\n[transfomer]: {text}")
 
-                if server_content.output_transcription:
-                    text = server_content.output_transcription.text
-                    if text:
-                        print(f"\n[transfomer]: {text}")
+                    if server_content.model_turn:
+                        for part in server_content.model_turn.parts:
+                            if part.inline_data:
+                                speaker.write(part.inline_data.data)
 
-                if server_content.model_turn:
-                    for part in server_content.model_turn.parts:
-                        if part.inline_data:
-                            speaker.write(part.inline_data.data)
+                    if server_content.turn_complete:
+                        print("\n--- turn complete ---")
 
-                if server_content.turn_complete:
-                    print("\n--- turn complete ---")
-
-                if server_content.interrupted:
-                    print("\n--- interrupted ---")
-
+                    if server_content.interrupted:
+                        print("\n--- interrupted ---")
+        finally:
+            speaker.stop_stream()
+            speaker.close()
 
     async def start(self):
+        print("Transformer started")
+        self.loop = asyncio.get_event_loop()
+
         client = genai.Client(
             api_key=os.environ["GOOGLE_API_KEY"]
         )
@@ -102,17 +106,23 @@ class TransformerService:
             print("[info]: Connected")
             print("[info]: Talk normally")
 
-            mic = sd.RawInputStream(
-                samplerate=self.INPUT_RATE,
-                blocksize=1024,
+            mic = self.pa.open(
+                format=pyaudio.paInt16,
                 channels=1,
-                dtype="int16",
-                callback=self.mic_callback,
+                rate=self.INPUT_RATE,
+                input=True,
+                frames_per_buffer=self.CHUNK,
+                stream_callback=self.mic_callback,
             )
 
-            mic.start()
+            mic.start_stream()
 
-            await asyncio.gather(
-                self.send_audio(session),
-                self.receive_audio(session),
-            )
+            try:
+                await asyncio.gather(
+                    self.send_audio(session),
+                    self.receive_audio(session),
+                )
+            finally:
+                mic.stop_stream()
+                mic.close()
+                self.pa.terminate()
