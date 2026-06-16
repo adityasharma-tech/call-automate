@@ -1,13 +1,16 @@
 import os
 import random
+import asyncio
 import subprocess
+from .events import events
 
 class AssetPlaybackService:
     
-    def __init__(self, pulse_sink='1'):
-        # self.pulse_sink = pulse_sink
+    def __init__(self, bus):
         self._env = os.environ.copy()
-        # self._env["PULSE_SINK"] = self.pulse_sink
+        self.bus = bus
+        self.bus.on(events['play_asset'], self.play)
+
 
     def play(self, audio_type="greets"): # goodbye | leave_a_message | greets
         match audio_type:
@@ -16,10 +19,10 @@ class AssetPlaybackService:
 
             case "greets":
                 self.make("greets")
-            
 
             case "leave_a_message":
                 self.make("leave_a_message")
+                self.bus.emit("hangup_active_call")
                 
     def make(self, path: str):
         dir_path = os.path.join(os.getcwd(), f"assets/audio_collections", path)        
