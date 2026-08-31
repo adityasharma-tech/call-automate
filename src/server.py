@@ -33,15 +33,21 @@ class CallService:
 
     async def handle_incoming(self, callpath):
         try:
-            await asyncio.sleep(1)
+            await asyncio.sleep(7)
+            
+            current_state = self.bluetooth.get_call_state(callpath)
+            if current_state != 'incoming':
+                print(f"[info] call state changed to {current_state!r} during wait, aborting answer")
+                return
+
             print("[info] answering the call")
             self.bluetooth.answer_call(callpath)
 
-            await asyncio.sleep(2)
-
-            bus.emit(events["start_vds"])
-            bus.emit(events["remove_loopbacks"])
             await asyncio.sleep(1)
+            bus.emit(events["start_vds"])
+            await asyncio.sleep(1)
+
+            bus.emit(events["remove_loopbacks"])
             # bus.emit(events["play_asset"], "leave_a_message")
 
             

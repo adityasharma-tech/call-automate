@@ -44,6 +44,12 @@ class BluetoothService:
         call.Hangup()
 
     @error_handler
+    def get_call_state(self, path):
+        call = dbus.Interface(self.bus.get_object('org.ofono', path), 'org.ofono.VoiceCall')
+        props = call.GetProperties()
+        return props.get('State')
+
+    @error_handler
     def hangup_active_call(self):
         mgr = dbus.Interface(self.bus.get_object('org.ofono', self.target_modem_path), 'org.ofono.VoiceCallManager')
         calls = mgr.GetCalls()
